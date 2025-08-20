@@ -33,12 +33,13 @@
                     <input type="text" id="studentName" placeholder="Contoh: Budi Santoso"
                            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm p-3 focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
-                <div>
+                <div class="mb-4">
                     <label for="studentNIM" class="block text-sm font-medium text-gray-700 mb-1">NIM</label>
                     <input type="text" id="studentNIM" placeholder="Contoh: 12345678"
                            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm p-3 focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
-                <label for="studentKELAS" class="block text-sm font-medium text-gray-700 mb-1">KELAS</label>
+                <div>
+                    <label for="studentKELAS" class="block text-sm font-medium text-gray-700 mb-1">KELAS</label>
                     <input type="text" id="studentKELAS" placeholder="Contoh: A"
                            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm p-3 focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
@@ -137,6 +138,7 @@
         // Referensi elemen-elemen UI
         const studentNameInput = document.getElementById('studentName');
         const studentNIMInput = document.getElementById('studentNIM');
+        const studentKELASInput = document.getElementById('studentKELAS');
         const saveInfoButton = document.getElementById('saveInfoButton');
         const advisorsList = document.getElementById('advisorsList');
         const loadingMessage = document.getElementById('loadingMessage');
@@ -181,17 +183,20 @@
         saveInfoButton.addEventListener('click', () => {
             const name = studentNameInput.value.trim();
             const nim = studentNIMInput.value.trim();
-            if (name && nim) {
-                studentInfo = { name, nim };
+            const kelas = studentKELASInput.value.trim();
+            
+            if (name && nim && kelas) {
+                studentInfo = { name, nim, kelas };
                 studentNameInput.disabled = true;
                 studentNIMInput.disabled = true;
+                studentKELASInput.disabled = true;
                 saveInfoButton.disabled = true;
                 saveInfoButton.textContent = 'Data Disimpan!';
                 saveInfoButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                 saveInfoButton.classList.add('bg-gray-400', 'cursor-not-allowed');
                 renderAdvisors(); // Render ulang daftar pembimbing
             } else {
-                showErrorMessage('Harap isi Nama Lengkap dan NIM Anda terlebih dahulu.');
+                showErrorMessage('Harap isi Nama Lengkap, NIM, dan KELAS Anda terlebih dahulu.');
             }
         });
 
@@ -297,7 +302,7 @@
         // Fungsi untuk menangani pilihan mahasiswa
         async function handleSelection(advisorId, advisorName) {
             if (!studentInfo) {
-                showErrorMessage('Harap isi Nama Lengkap dan NIM Anda terlebih dahulu.');
+                showErrorMessage('Harap isi Nama Lengkap, NIM, dan KELAS Anda terlebih dahulu.');
                 return;
             }
 
