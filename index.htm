@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pemilihan Pembimbing Skripsi</title>
+    <!-- Tailwind CSS CDN untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container mx-auto p-4 md:p-8">
+        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl max-w-6xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-2">
+                Pemilihan Pembimbing Skripsi
+            </h1>
+            <p class="text-center text-gray-500 mb-6 md:mb-10">
+                Isi data diri Anda dan pilih pembimbing. Hasil akan muncul di bawah.
+                Mahasiswa yang bisa melakukan pemilihan bimbingan adalah mahasiswa semester 7, dengan ketentuan tidak ada nilai D/E dan Minimal sudah mengontrak 123 SKS sd semester 6.
+                Silahkan Cek Nilainya di SIAKAD, apabila ada perbedaan cek rekap manual ke Staff Prodi. 
+            </p>
+
+            <!-- Bagian Form Mahasiswa -->
+            <div class="mb-8">
+                <div class="mb-4">
+                    <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="studentName" placeholder="Contoh: Budi Santoso"
+                           class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm p-3 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="studentNIM" class="block text-sm font-medium text-gray-700 mb-1">NIM</label>
+                    <input type="text" id="studentNIM" placeholder="Contoh: 12345678"
+                           class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm p-3 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <label for="studentKELAS" class="block text-sm font-medium text-gray-700 mb-1">KELAS</label>
+                    <input type="text" id="studentKELAS" placeholder="Contoh: A"
+                           class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm p-3 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <button id="saveInfoButton" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 mt-6 rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300">
+                    Simpan Data & Mulai Memilih
+                </button>
+            </div>
+
+            <hr class="my-8 border-gray-200">
+
+            <!-- Bagian Daftar Pembimbing -->
+            <h2 class="text-2xl font-bold text-gray-700 text-center mb-6">Pilih Pasangan Pembimbing</h2>
+            <div id="advisorsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                <!-- Daftar pembimbing akan dimuat di sini oleh JavaScript -->
+                <p id="loadingMessage" class="col-span-full text-center text-gray-500">Memuat data pembimbing...</p>
+            </div>
+
+            <hr class="my-8 border-gray-200">
+
+            <!-- Dashboard Hasil -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-gray-700">Hasil Pilihan Mahasiswa</h2>
+                <button id="exportButton" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-xl shadow-md hover:bg-green-700 transition-all duration-300">
+                    <svg class="w-4 h-4 mr-2 inline-block" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11 3a1 1 0 100 2h6a1 1 0 100-2h-6zM9 7a1 1 0 100 2h8a1 1 0 100-2H9zM7 11a1 1 0 100 2h10a1 1 0 100-2H7zM5 15a1 1 0 100 2h12a1 1 0 100-2H5z"></path></svg>
+                    Ekspor ke CSV
+                </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                Pasangan Pembimbing
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                Nama Mahasiswa
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                NIM
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                KELAS
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Data akan dimuat di sini oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <p id="dashboardMessage" class="text-center text-gray-500 mt-6">Memuat data...</p>
+
+            <!-- Pop-up Modal Konfirmasi -->
+            <div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Pilihan Tersimpan!</h3>
+                    <p class="text-gray-600 mb-6">Pilihan Anda berhasil disimpan. Anda tidak bisa memilih lagi.</p>
+                    <button id="closeModalButton" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-xl hover:bg-indigo-700 transition-all duration-300">
+                        OK
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pop-up Modal Error -->
+            <div id="errorModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+                    <h3 class="text-xl font-bold text-red-600 mb-4">Gagal Memilih</h3>
+                    <p id="errorMessage" class="text-gray-600 mb-6"></p>
+                    <button id="closeErrorModalButton" class="bg-red-600 text-white font-semibold py-2 px-6 rounded-xl hover:bg-red-700 transition-all duration-300">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase SDK (9.x) dan Firestore -->
+    <script type="module">
+        // Import modul Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, runTransaction, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Referensi elemen-elemen UI
+        const studentNameInput = document.getElementById('studentName');
+        const studentNIMInput = document.getElementById('studentNIM');
+        const saveInfoButton = document.getElementById('saveInfoButton');
+        const advisorsList = document.getElementById('advisorsList');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const errorModal = document.getElementById('errorModal');
+        const errorMessage = document.getElementById('errorMessage');
+        const closeErrorModalButton = document.getElementById('closeErrorModalButton');
+        const dataTableBody = document.getElementById('dataTableBody');
+        const dashboardMessage = document.getElementById('dashboardMessage');
+        const exportButton = document.getElementById('exportButton');
+
+        // Data awal untuk pembimbing
+        const advisorData = [
+            { id: 'asep-irfan', advisors: 'Asep Saeppani, S.Kom., M.Kom - Irfan Fadil, M.Kom', quota: 20 },
+            { id: 'dody-agreindra', advisors: 'Dody Herdiana, S.T., M.Kom.,Ph.D. - M. Agreindra Helmiawan, S.Kom., M.T.', quota: 20 },
+            { id: 'esa-baben', advisors: 'Esa Firmansyah, S.T., M.Kom. - Beben Sutara, S.Kom., M.T.', quota: 20 },
+            { id: 'fathoni-dani', advisors: 'Fathoni Mahardika, S.Kom., M.T. - H. Dani Indra Junaedi, S.E.,M.M', quota: 20 },
+            { id: 'fidi-david', advisors: 'Fidi Supriadi, S.Kom., M.T. - David Setiadi, S.Kom., M.T.', quota: 20 },
+            { id: 'dwi-yayan', advisors: 'H. Dwi Yuniarto, S.Sos., M.Kom., Ph.D. - Yayan Cahyan, M.Kom', quota: 20 },
+            { id: 'maya-deris', advisors: 'Hj. Maya Suhayati, M.Kom. - Deris Santika, M.Kom.', quota: 20 }
+        ];
+
+        let studentInfo = null;
+        let hasChosen = false;
+        let userId;
+
+        // Function untuk menampilkan modal error
+        function showErrorMessage(message) {
+            errorMessage.textContent = message;
+            errorModal.classList.remove('hidden');
+            errorModal.classList.add('flex');
+        }
+
+        // Event listener untuk tombol close modal error
+        closeErrorModalButton.addEventListener('click', () => {
+            errorModal.classList.add('hidden');
+            errorModal.classList.remove('flex');
+        });
+
+        // Event listener untuk tombol Simpan Data
+        saveInfoButton.addEventListener('click', () => {
+            const name = studentNameInput.value.trim();
+            const nim = studentNIMInput.value.trim();
+            if (name && nim) {
+                studentInfo = { name, nim };
+                studentNameInput.disabled = true;
+                studentNIMInput.disabled = true;
+                saveInfoButton.disabled = true;
+                saveInfoButton.textContent = 'Data Disimpan!';
+                saveInfoButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                saveInfoButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                renderAdvisors(); // Render ulang daftar pembimbing
+            } else {
+                showErrorMessage('Harap isi Nama Lengkap dan NIM Anda terlebih dahulu.');
+            }
+        });
+
+        // Fungsi untuk merender daftar pembimbing
+        function renderAdvisors() {
+            advisorsList.innerHTML = '';
+            loadingMessage.classList.add('hidden');
+
+            advisorData.forEach(advisor => {
+                const isFull = (advisor.students?.length || 0) >= advisor.quota;
+                const remainingSlots = Math.max(0, advisor.quota - (advisor.students?.length || 0));
+                const card = document.createElement('div');
+                card.classList.add('bg-gray-50', 'rounded-2xl', 'p-6', 'shadow-md', 'border', 'border-gray-200', 'hover:shadow-lg', 'transition-all', 'duration-300');
+
+                let statusText;
+                let buttonClass;
+                let buttonText;
+                let buttonDisabled = isFull || !studentInfo || hasChosen;
+
+                if (isFull) {
+                    statusText = `<span class="text-red-600 font-bold">Penuh</span>`;
+                    buttonClass = 'bg-gray-400 cursor-not-allowed';
+                    buttonText = 'Penuh';
+                } else if (!studentInfo) {
+                    statusText = `<span class="text-gray-500">Tersisa: ${remainingSlots} slot</span>`;
+                    buttonClass = 'bg-gray-400 cursor-not-allowed';
+                    buttonText = 'Isi Data Diri Dulu';
+                    buttonDisabled = true;
+                } else if (hasChosen) {
+                    statusText = `<span class="text-green-600 font-bold">Anda Sudah Memilih</span>`;
+                    buttonClass = 'bg-gray-400 cursor-not-allowed';
+                    buttonText = 'Sudah Memilih';
+                    buttonDisabled = true;
+                } else {
+                    statusText = `<span class="text-green-600 font-bold">Tersisa: ${remainingSlots} slot</span>`;
+                    buttonClass = 'bg-blue-600 hover:bg-blue-700';
+                    buttonText = 'Pilih Pembimbing Ini';
+                    buttonDisabled = false;
+                }
+                
+                // Cek apakah mahasiswa saat ini sudah memilih pembimbing ini
+                const studentExists = advisor.students?.some(s => s.nim === studentInfo?.nim);
+                if (studentExists) {
+                    statusText = `<span class="text-indigo-600 font-bold">Pilihan Anda</span>`;
+                    buttonClass = 'bg-indigo-600 cursor-not-allowed';
+                    buttonText = 'Sudah Anda Pilih';
+                    buttonDisabled = true;
+                    hasChosen = true; // Set flag agar tombol lain juga nonaktif
+                }
+
+                card.innerHTML = `
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">${advisor.advisors}</h3>
+                    <p class="text-sm text-gray-500 mb-4">${statusText}</p>
+                    <button id="btn-${advisor.id}"
+                            class="w-full text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 ${buttonClass}"
+                            ${buttonDisabled ? 'disabled' : ''}>
+                        ${buttonText}
+                    </button>
+                `;
+                advisorsList.appendChild(card);
+
+                // Tambahkan event listener ke tombol "Pilih"
+                const selectButton = document.getElementById(`btn-${advisor.id}`);
+                if (selectButton && !buttonDisabled) {
+                    selectButton.addEventListener('click', () => handleSelection(advisor.id, advisor.advisors));
+                }
+            });
+        }
+        
+        // Fungsi untuk merender tabel data mahasiswa
+        function renderStudentTable(allStudentData) {
+            dataTableBody.innerHTML = '';
+            
+            if (allStudentData.length > 0) {
+                allStudentData.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.classList.add('hover:bg-gray-50', 'transition-colors', 'duration-150');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            ${student.advisors}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${student.name}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${student.nim}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${student.kelas}
+                        </td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+                dashboardMessage.style.display = 'none';
+                exportButton.style.display = 'block';
+            } else {
+                dashboardMessage.textContent = 'Belum ada data mahasiswa yang memilih.';
+                dashboardMessage.style.display = 'block';
+                exportButton.style.display = 'none';
+            }
+        }
+
+        // Fungsi untuk menangani pilihan mahasiswa
+        async function handleSelection(advisorId, advisorName) {
+            if (!studentInfo) {
+                showErrorMessage('Harap isi Nama Lengkap dan NIM Anda terlebih dahulu.');
+                return;
+            }
+
+            const advisorDocRef = doc(db, `artifacts/${appId}/public/data/thesisAdvisors`, advisorId);
+            
+            try {
+                // Gunakan runTransaction untuk operasi atomik
+                await runTransaction(db, async (transaction) => {
+                    const docSnapshot = await transaction.get(advisorDocRef);
+                    if (!docSnapshot.exists()) {
+                        throw "Dokumen pembimbing tidak ditemukan!";
+                    }
+                    const data = docSnapshot.data();
+                    const students = data.students || [];
+
+                    // Periksa apakah kuota sudah penuh
+                    if (students.length >= data.quota) {
+                        throw "Kuota untuk pasangan pembimbing ini sudah penuh. Silakan pilih yang lain.";
+                    }
+
+                    // Periksa apakah mahasiswa sudah terdaftar
+                    const studentExists = students.some(s => s.nim === studentInfo.nim);
+                    if (studentExists) {
+                        throw "Anda sudah terdaftar sebagai pembimbing ini.";
+                    }
+                    
+                    // Tambahkan mahasiswa ke daftar
+                    const newStudents = [...students, studentInfo];
+                    transaction.update(advisorDocRef, { students: newStudents });
+                });
+
+                // Jika transaksi berhasil
+                confirmationModal.classList.remove('hidden');
+                confirmationModal.classList.add('flex');
+                hasChosen = true;
+                // Render akan dipicu oleh listener onSnapshot
+
+            } catch (error) {
+                console.error("Gagal melakukan pemilihan: ", error);
+                const errorMessageText = typeof error === 'string' ? error : 'Terjadi kesalahan. Silakan coba lagi.';
+                showErrorMessage(errorMessageText);
+            }
+        }
+
+        // Fungsi untuk mengekspor data ke CSV
+        async function exportToCSV() {
+            try {
+                const collectionRef = collection(db, `artifacts/${appId}/public/data/thesisAdvisors`);
+                const querySnapshot = await getDocs(collectionRef);
+                
+                let csvContent = "Pasangan Pembimbing,Nama Mahasiswa,NIM,KELAS\n"; // Header CSV
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const advisors = data.advisors;
+                    const students = data.students || [];
+
+                    students.forEach(student => {
+                        // Gabungkan data dalam satu baris dengan koma sebagai pemisah
+                        const row = `"${advisors.replace(/"/g, '""')}","${student.name.replace(/"/g, '""')}","${student.nim.replace(/"/g, '""')}","${student.kelas.replace(/"/g, '""')}"\n`;
+                        csvContent += row;
+                    });
+                });
+
+                // Buat dan unduh file CSV
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'data_pilihan_pembimbing.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error("Error exporting to CSV: ", error);
+                // Menggunakan modal error yang sudah ada
+                showErrorMessage("Terjadi kesalahan saat mengekspor data.");
+            }
+        }
+
+        // Event listener untuk tombol close modal konfirmasi
+        closeModalButton.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            confirmationModal.classList.remove('flex');
+        });
+        
+        // Event listener untuk tombol ekspor
+        exportButton.addEventListener('click', exportToCSV);
+
+
+        // Inisialisasi data awal di Firestore jika belum ada
+        async function initializeData() {
+            for (const data of advisorData) {
+                const docRef = doc(db, `artifacts/${appId}/public/data/thesisAdvisors`, data.id);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    await setDoc(docRef, {
+                        advisors: data.advisors,
+                        quota: data.quota,
+                        students: []
+                    });
+                }
+            }
+        }
+        
+        // Atur listener untuk perubahan data di Firestore secara real-time
+        function setupRealtimeListener() {
+            const collectionRef = collection(db, `artifacts/${appId}/public/data/thesisAdvisors`);
+            onSnapshot(collectionRef, (snapshot) => {
+                let allStudentData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const advisor = advisorData.find(ad => ad.id === doc.id);
+                    if (advisor) {
+                        advisor.students = data.students;
+                    }
+                    const students = data.students || [];
+                    students.forEach(student => {
+                        allStudentData.push({
+                            advisors: data.advisors,
+                            name: student.name,
+                            nim: student.nim,
+                            kelas: student.kelas
+                        });
+                    });
+                });
+                renderAdvisors(); // Update tampilan pembimbing
+                renderStudentTable(allStudentData); // Update tampilan tabel mahasiswa
+            }, (error) => {
+                console.error("Gagal mendengarkan update real-time:", error);
+                loadingMessage.textContent = 'Gagal memuat data. Silakan refresh halaman.';
+                dashboardMessage.textContent = 'Gagal memuat data. Silakan refresh halaman.';
+                loadingMessage.classList.remove('hidden');
+                dashboardMessage.classList.remove('hidden');
+            });
+        }
+        
+        // Autentikasi dan mulai aplikasi
+        async function startApp() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        await initializeData();
+                        setupRealtimeListener();
+                    } else {
+                        // Handle jika user sign out (seharusnya tidak terjadi di sini)
+                    }
+                });
+            } catch (error) {
+                console.error("Gagal melakukan autentikasi dengan Firebase:", error);
+                loadingMessage.textContent = 'Gagal memuat aplikasi. Silakan coba lagi.';
+                loadingMessage.classList.remove('hidden');
+            }
+        }
+
+        // Jalankan aplikasi
+        startApp();
+    </script>
+</body>
+</html>
